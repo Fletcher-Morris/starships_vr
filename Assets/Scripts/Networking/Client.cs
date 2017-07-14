@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class Client : MonoBehaviour
 {
     public GameObject lobbyPlayerPrefab;
-    public List<Player> players = new List<Player>();
+    public Dictionary<int, Player> players = new Dictionary<int, Player>();
 
     private const int MAX_CONNECTIONS = 8;
 
@@ -28,6 +28,8 @@ public class Client : MonoBehaviour
     private bool isConnected = false;
     private bool isStarted = false;
     private byte error;
+
+    public bool deepDebug = false;
 
     private string playerName;
     public int myPing;
@@ -60,7 +62,7 @@ public class Client : MonoBehaviour
     {
         string conPlrs = "";
 
-        foreach(Player conPlr in players)
+        foreach(Player conPlr in players.Values)
         {
             conPlrs += conPlr.playerName + "\n";
         }
@@ -82,7 +84,10 @@ public class Client : MonoBehaviour
         {
             case NetworkEventType.DataEvent:       //3
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                Debug.Log("Receiving : " + msg);
+                if (deepDebug)
+                {
+                    Debug.Log("Receiving : " + msg);
+                }
                 string[] splitData = msg.Split('|');
                 switch (splitData[0])
                 {
@@ -96,6 +101,7 @@ public class Client : MonoBehaviour
                         break;
 
                     case "DC":
+                        PlayerDisconnected(int.Parse(splitData[1]));
                         break;
 
                     case "PING":
@@ -116,7 +122,10 @@ public class Client : MonoBehaviour
 
     private void Send(string message, int channelId)
     {
-        Debug.Log("Sending : " + message);
+        if (deepDebug)
+        {
+            Debug.Log("Sending : " + message); 
+        }
         byte[] msg = Encoding.Unicode.GetBytes(message);
         NetworkTransport.Send(hostId, connectionId, channelId, msg, message.Length * sizeof(char), out error);
     }
@@ -140,6 +149,7 @@ public class Client : MonoBehaviour
 
     private void OnPing(string[] data)
     {
+        //  Send back the ping data
         Send("ECHO|" + data[1], reliableChannel);
     }
 
@@ -151,6 +161,12 @@ public class Client : MonoBehaviour
         p.playerName = playerName;
         p.connectionId = conId;
 
-        players.Add(p);
+        players.Add(conId, p);
+    }
+
+    private void PlayerDisconnected(int conId)
+    {
+        Debug.Log(players[conId].playerName + " (player " + conId + ") has disconnected");
+        players.Remove(conId);
     }
 }

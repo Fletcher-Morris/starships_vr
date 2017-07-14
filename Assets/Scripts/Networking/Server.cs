@@ -36,7 +36,7 @@ public class Server : MonoBehaviour
     public float pingFrequency = 2f;
     private float pingTimer = 2f;
 
-    public bool detailedDebug = false;
+    public bool deepDebug = false;
 
     public void StartHost()
     {
@@ -83,7 +83,7 @@ public class Server : MonoBehaviour
                 break;
             case NetworkEventType.DataEvent:       //3
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                if (detailedDebug)
+                if (deepDebug)
                 {
                     Debug.Log("Receiving from " + connectionId + " : " + msg);
                 }
@@ -107,7 +107,7 @@ public class Server : MonoBehaviour
                 }
                 break;
             case NetworkEventType.DisconnectEvent: //4
-                Debug.Log("Player " + connectionId + " has disconnected");
+                OnDisconnection(connectionId);
                 break;
         }
 
@@ -136,6 +136,15 @@ public class Server : MonoBehaviour
         Send(msg, reliableChannel, conId);
     }
 
+    private void OnDisconnection(int conId)
+    {
+        Debug.Log(clients.Find(x => x.connectionId == conId).playerName + " (player " + conId + ") has disconnected");
+        //  Remove the player from client list
+        clients.Remove(clients.Find(x => x.connectionId == conId));
+        //  Tell everyone that someone disconnected
+        Send("DC|" + conId, reliableChannel, clients);
+    }
+
     private void Send(string message, int channelId, int conId)
     {
         List<ServerClient> c = new List<ServerClient>();
@@ -144,7 +153,7 @@ public class Server : MonoBehaviour
     }
     private void Send(string message, int channelId, List<ServerClient> c)
     {
-        if (detailedDebug)
+        if (deepDebug)
         {
             Debug.Log("Sending : " + message);
         }
