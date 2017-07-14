@@ -31,6 +31,8 @@ public class Server : MonoBehaviour
     private bool isStarted;
     private byte error;
 
+    public string externalIp;
+
     public List<ServerClient> clients = new List<ServerClient>();
 
     public float pingFrequency = 2f;
@@ -39,8 +41,30 @@ public class Server : MonoBehaviour
     public bool shallowDebug = false;
     public bool deepDebug = false;
 
+    private void Start()
+    {
+        StartCoroutine(GetExternalIp());
+    }
+
+    private IEnumerator GetExternalIp()
+    {
+        WWW www = new WWW("http://checkip.dyndns.org");
+
+        yield return www;
+        string webText =  www.text;
+        string[] webTextSplit;
+        webTextSplit = webText.Split(' ');
+        webText = webTextSplit[webTextSplit.Length - 1];
+        webTextSplit = webText.Split('<');
+        webText = webTextSplit[0];
+
+        externalIp = webText;
+    }
+
     public void StartHost()
     {
+        StartCoroutine(GetExternalIp());
+
         NetworkTransport.Init();
         ConnectionConfig cc = new ConnectionConfig();
 
@@ -53,6 +77,7 @@ public class Server : MonoBehaviour
         webHostId = NetworkTransport.AddWebsocketHost(topo, port, null);
 
         ServerLog("SERVER STARTED");
+        ServerLog("External IP is " + externalIp);
         isStarted = true;
     }
 

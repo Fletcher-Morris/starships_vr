@@ -10,10 +10,12 @@ public class Client : MonoBehaviour
 {
     public GameObject lobbyPlayerPrefab;
     public Dictionary<int, Player> players = new Dictionary<int, Player>();
+    private InputField addressInputField;
 
     private const int MAX_CONNECTIONS = 8;
 
     private int port = 7777;
+    private string connectToIp = "127.0.0.1";
 
     private int hostId;
     private int webHostId;
@@ -29,6 +31,8 @@ public class Client : MonoBehaviour
     private bool isStarted = false;
     private byte error;
 
+    public string externalIp;
+
     public bool deepDebug = false;
 
     private string playerName;
@@ -36,12 +40,35 @@ public class Client : MonoBehaviour
 
     private void Start()
     {
+        addressInputField = GameObject.Find("AddressInputField").GetComponent<InputField>();
         playerName = RosmarusExtensions.RandomString(5, 5, true);
         GameObject.Find("NameTextBox").GetComponent<Text>().text = playerName;
+        StartCoroutine(GetExternalIp());
+    }
+
+    private IEnumerator GetExternalIp()
+    {
+        WWW www = new WWW("http://checkip.dyndns.org");
+
+        yield return www;
+        string webText = www.text;
+        string[] webTextSplit;
+        webTextSplit = webText.Split(' ');
+        webText = webTextSplit[webTextSplit.Length - 1];
+        webTextSplit = webText.Split('<');
+        webText = webTextSplit[0];
+
+        externalIp = webText;
     }
 
     public void Connect()
     {
+        StartCoroutine(GetExternalIp());
+        if(addressInputField.text != "")
+        {
+            connectToIp = addressInputField.text;
+        }
+
         NetworkTransport.Init();
         ConnectionConfig cc = new ConnectionConfig();
 
@@ -51,7 +78,7 @@ public class Client : MonoBehaviour
         HostTopology topo = new HostTopology(cc, MAX_CONNECTIONS);
 
         hostId = NetworkTransport.AddHost(topo, 0);
-        connectionId = NetworkTransport.Connect(hostId, "192.168.1.99", port, 0, out error);
+        connectionId = NetworkTransport.Connect(hostId, connectToIp, port, 0, out error);
 
         Debug.Log("CONNECTED TO SERVER");
         connectionTime = Time.time;
