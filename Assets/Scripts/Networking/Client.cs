@@ -58,6 +58,14 @@ public class Client : MonoBehaviour
         isConnected = true;
     }
 
+    public void Disconnect()
+    {
+        NetworkTransport.Shutdown();
+        isConnected = false;
+        isStarted = false;
+        players.Clear();
+    }
+
     private void Update()
     {
         string conPlrs = "";

@@ -36,6 +36,7 @@ public class Server : MonoBehaviour
     public float pingFrequency = 2f;
     private float pingTimer = 2f;
 
+    public bool shallowDebug = false;
     public bool deepDebug = false;
 
     public void StartHost()
@@ -51,8 +52,25 @@ public class Server : MonoBehaviour
         hostId = NetworkTransport.AddHost(topo, port, null);
         webHostId = NetworkTransport.AddWebsocketHost(topo, port, null);
 
-        Debug.Log("SERVER STARTED");
+        ServerLog("SERVER STARTED");
         isStarted = true;
+    }
+
+    public void StopHost()
+    {
+        NetworkTransport.Shutdown();
+        isStarted = false;
+        clients.Clear();
+    }
+
+    public void ToggleDebug(Toggle toggle)
+    {
+        shallowDebug = toggle.isOn;
+    }
+
+    public void ToggleDeepDebug(Toggle toggle)
+    {
+        deepDebug = toggle.isOn;
     }
 
     private void Update()
@@ -78,14 +96,14 @@ public class Server : MonoBehaviour
         switch (recData)
         {
             case NetworkEventType.ConnectEvent:    //2
-                Debug.Log("Player " + connectionId + " has connected");
+                ServerLog("Player " + connectionId + " has connected");
                 OnConnect(connectionId);
                 break;
             case NetworkEventType.DataEvent:       //3
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                if (deepDebug)
+                if (shallowDebug)
                 {
-                    Debug.Log("Receiving from " + connectionId + " : " + msg);
+                    ServerLog("Receiving from " + connectionId + " : " + msg);
                 }
                 string[] splitData = msg.Split('|');
                 switch (splitData[0])
@@ -102,7 +120,7 @@ public class Server : MonoBehaviour
                         break;
 
                     default:
-                        Debug.Log("Invalid Message : " + msg);
+                        ServerLog("Invalid Message : " + msg);
                         break;
                 }
                 break;
@@ -138,7 +156,7 @@ public class Server : MonoBehaviour
 
     private void OnDisconnection(int conId)
     {
-        Debug.Log(clients.Find(x => x.connectionId == conId).playerName + " (player " + conId + ") has disconnected");
+        ServerLog(clients.Find(x => x.connectionId == conId).playerName + " (player " + conId + ") has disconnected");
         //  Remove the player from client list
         clients.Remove(clients.Find(x => x.connectionId == conId));
         //  Tell everyone that someone disconnected
@@ -153,15 +171,29 @@ public class Server : MonoBehaviour
     }
     private void Send(string message, int channelId, List<ServerClient> c)
     {
-        if (deepDebug)
+        if (shallowDebug)
         {
-            Debug.Log("Sending : " + message);
+            ServerLog("Sending : " + message);
         }
         byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient client in c)
         {
             NetworkTransport.Send(hostId, client.connectionId, channelId, msg, message.Length * sizeof(char), out error);
         }
+    }
+
+    private void ServerLog(string input)
+    {
+        if(input.Split('|')[0].Contains("PING") || input.Split('|')[0].Contains("ECHO"))
+        {
+            if(deepDebug == false)
+            {
+                return;
+            }
+        }
+
+        GameObject.Find("ServerConsole").transform.GetChild(0).gameObject.GetComponent<Text>().text += ("\n" + input);
+        Debug.Log(input);
     }
 
     private void OnNameIs(int conId, string playerName)
