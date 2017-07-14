@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -11,6 +12,8 @@ public class ServerClient
     public int connectionId;
     public string playerName;
     public string playerClass;
+
+    public int playerPing;
 }
 
 public class Server : MonoBehaviour
@@ -29,6 +32,11 @@ public class Server : MonoBehaviour
     private byte error;
 
     public List<ServerClient> clients = new List<ServerClient>();
+
+    public float pingFrequency = 2f;
+    private float pingTimer = 2f;
+
+    public bool detailedDebug = false;
 
     public void StartHost()
     {
@@ -75,7 +83,10 @@ public class Server : MonoBehaviour
                 break;
             case NetworkEventType.DataEvent:       //3
                 string msg = Encoding.Unicode.GetString(recBuffer, 0, dataSize);
-                Debug.Log("Receiving from " + connectionId + " : " + msg);
+                if (detailedDebug)
+                {
+                    Debug.Log("Receiving from " + connectionId + " : " + msg);
+                }
                 string[] splitData = msg.Split('|');
                 switch (splitData[0])
                 {
@@ -86,6 +97,10 @@ public class Server : MonoBehaviour
                     case "DC":
                         break;
 
+                    case "ECHO":
+                        OnEcho(connectionId, DateTime.Parse(splitData[1]), DateTime.Now);
+                        break;
+
                     default:
                         Debug.Log("Invalid Message : " + msg);
                         break;
@@ -94,6 +109,13 @@ public class Server : MonoBehaviour
             case NetworkEventType.DisconnectEvent: //4
                 Debug.Log("Player " + connectionId + " has disconnected");
                 break;
+        }
+
+        pingTimer -= Time.deltaTime;
+        if(pingTimer <= 0)
+        {
+            Send("PING|" + DateTime.Now.ToString(), reliableChannel, clients);
+            pingTimer = pingFrequency;
         }
     }
 
@@ -122,7 +144,10 @@ public class Server : MonoBehaviour
     }
     private void Send(string message, int channelId, List<ServerClient> c)
     {
-        Debug.Log("Sending : " + message);
+        if (detailedDebug)
+        {
+            Debug.Log("Sending : " + message);
+        }
         byte[] msg = Encoding.Unicode.GetBytes(message);
         foreach (ServerClient client in c)
         {
@@ -136,5 +161,13 @@ public class Server : MonoBehaviour
         clients.Find(x => x.connectionId == conId).playerName = playerName;
         //  Tell clients that a new player connected
         Send("CON|" + playerName + '|' + conId, reliableChannel, clients);
+    }
+
+    private void OnEcho(int conId, DateTime pingTime, DateTime echoTime)
+    {
+        int avTripTime = Mathf.RoundToInt(Convert.ToSingle((echoTime - pingTime).TotalSeconds));
+        clients.Find(x => x.connectionId == conId).playerPing = avTripTime;
+
+        Send("PINGRESULT|" + avTripTime.ToString(), reliableChannel, conId);
     }
 }

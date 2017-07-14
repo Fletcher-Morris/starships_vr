@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -29,6 +30,7 @@ public class Client : MonoBehaviour
     private byte error;
 
     private string playerName;
+    public int myPing;
 
     private void Start()
     {
@@ -89,16 +91,19 @@ public class Client : MonoBehaviour
                         break;
 
                     case "CON":
-
-
                         SpawnLobbyPlayer(splitData[1], int.Parse(splitData[2]));
-
                         Debug.Log(splitData[1].ToString() + " and " + int.Parse(splitData[2]).ToString());
-
-
                         break;
 
                     case "DC":
+                        break;
+
+                    case "PING":
+                        OnPing(splitData);
+                        break;
+
+                    case "PINGRESULT":
+                        myPing = int.Parse(splitData[1]);
                         break;
 
                     default:
@@ -131,6 +136,11 @@ public class Client : MonoBehaviour
 
             SpawnLobbyPlayer(d[0], int.Parse(d[1]));
         }
+    }
+
+    private void OnPing(string[] data)
+    {
+        Send("ECHO|" + data[1], reliableChannel);
     }
 
     private void SpawnLobbyPlayer(string playerName, int conId)
