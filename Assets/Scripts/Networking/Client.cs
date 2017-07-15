@@ -143,8 +143,8 @@ public class Client : MonoBehaviour
                         OnPing(splitData);
                         break;
 
-                    case "PINGRESULT":
-                        myPing = int.Parse(splitData[1]);
+					case "PINGRESULT":
+						OnPingResult (splitData);
                         break;
 
                     default:
@@ -187,6 +187,17 @@ public class Client : MonoBehaviour
         //  Send back the ping data
         Send("ECHO|" + data[1], reliableChannel);
     }
+
+	private void OnPingResult(string[] data)
+	{
+		if (deepDebug)
+		{
+			Debug.Log("Ping is now : " + data[1].ToString()); 
+		}
+
+		myPing = int.Parse (data [1]);
+		GameObject.Find("NameTextBox").GetComponent<Text>().text = playerName + " " + myPing + "ms";
+	}
 
     private void SpawnLobbyPlayer(string playerName, int conId)
     {
