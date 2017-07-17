@@ -5,11 +5,14 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class Client : MonoBehaviour
 {
     public GameObject lobbyPlayerPrefab;
+    public GameObject gamePlayerPrefab;
     public Dictionary<int, Player> players = new Dictionary<int, Player>();
+    public GameObject myPlayerAvatar;
     private InputField addressInputField;
 
     private const int MAX_CONNECTIONS = 8;
@@ -90,6 +93,12 @@ public class Client : MonoBehaviour
         NetworkTransport.Shutdown();
         isConnected = false;
         isStarted = false;
+
+        foreach (Player conPlr in players.Values)
+        {
+            GameObject.Destroy(conPlr.playerAvatar.gameObject);
+        }
+
         players.Clear();
     }
 
@@ -131,8 +140,7 @@ public class Client : MonoBehaviour
                         break;
 
                     case "CON":
-                        SpawnLobbyPlayer(splitData[1], int.Parse(splitData[2]));
-                        Debug.Log(splitData[1].ToString() + " and " + int.Parse(splitData[2]).ToString());
+                        SpawnConnectedPlayer(splitData[1], int.Parse(splitData[2]));
                         break;
 
                     case "DC":
@@ -147,6 +155,18 @@ public class Client : MonoBehaviour
 						OnPingResult (splitData);
                         break;
 
+                    case "ASKINPUT":
+                        OnAskInput(splitData);
+                        break;
+
+                    case "MOVEMENTOUTPUT":
+                        OnMovementOutput(splitData);
+                        break;
+
+                    case "INVALIDMESSAGE":
+                        Debug.Log("The previously sent message was not recognised");
+                        break;
+
                     default:
                         Debug.Log("Invalid Message : " + msg);
                         break;
@@ -155,7 +175,7 @@ public class Client : MonoBehaviour
         }
     }
 
-    private void Send(string message, int channelId)
+    public void Send(string message, int channelId)
     {
         if (deepDebug)
         {
@@ -173,12 +193,15 @@ public class Client : MonoBehaviour
         //  Send our name to the server
         Send("NAMEIS|" + playerName, reliableChannel);
 
+        //  Load the game scene
+        SceneManager.LoadScene(1);
+
         //  Create the other players
         for (int i = 2; i < data.Length - 1; i++)
         {
             string[] d = data[i].Split('%');
 
-            SpawnLobbyPlayer(d[0], int.Parse(d[1]));
+            SpawnConnectedPlayer(d[0], int.Parse(d[1]));
         }
     }
 
@@ -199,13 +222,24 @@ public class Client : MonoBehaviour
 		GameObject.Find("NameTextBox").GetComponent<Text>().text = playerName + " " + myPing + "ms";
 	}
 
-    private void SpawnLobbyPlayer(string playerName, int conId)
+    private void SpawnConnectedPlayer(string playerName, int conId)
     {
-        Debug.Log("SPAWN PLAYER : " + playerName);
+        Debug.Log("SPAWN PLAYER : " + playerName + " ID: " + conId);
+
+        GameObject spawnedPlayer = Instantiate(gamePlayerPrefab) as GameObject;
+
+        //  Is this player ours?
+        if(conId == myclientId)
+        {
+            //spawnedPlayer.GetComponent<PlayerMovement>().isLocalPlayer = true;
+            myPlayerAvatar = spawnedPlayer;
+            isStarted = true;
+        }
 
         Player p = new Player();
         p.playerName = playerName;
         p.connectionId = conId;
+        p.playerAvatar = spawnedPlayer;
 
         players.Add(conId, p);
     }
@@ -213,6 +247,28 @@ public class Client : MonoBehaviour
     private void PlayerDisconnected(int conId)
     {
         Debug.Log(players[conId].playerName + " (player " + conId + ") has disconnected");
+        Destroy(players[conId].playerAvatar);
         players.Remove(conId);
+    }
+
+    private void OnAskInput(string[] data)
+    {
+        if (!isStarted)
+            return;
+
+        string msg = "MOVEMENTINPUT|";
+
+        //msg += myPlayerAvatar.GetComponent<PlayerMovement>().movementDirectionInput.x.ToString() + '|' + myPlayerAvatar.GetComponent<PlayerMovement>().movementDirectionInput.y.ToString();
+
+        Send(msg, unreliableChannel);
+    }
+
+    private void OnMovementOutput(string[] data)
+    {
+        if (isStarted)
+        {
+            GameObject obj = players[int.Parse(data[1])].playerAvatar;
+            //obj.GetComponent<PlayerMovement>().movementDirectionInput = new Vector2(float.Parse(data[2]), float.Parse(data[3]));
+        }
     }
 }

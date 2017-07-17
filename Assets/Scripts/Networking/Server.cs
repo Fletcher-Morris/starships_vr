@@ -11,13 +11,14 @@ public class ServerClient
 {
     public int connectionId;
     public string playerName;
-    public string playerClass;
-
     public int playerPing;
+    public Vector3 playerPosition;
 }
 
 public class Server : MonoBehaviour
 {
+    private static Server instance = null;
+
     private const int MAX_CONNECTIONS = 8;
 
     private int port = 7777;
@@ -38,11 +39,29 @@ public class Server : MonoBehaviour
     public float pingFrequency = 2f;
     private float pingTimer = 2f;
 
+    public float movementUpdateRate = 0.1f;
+    private float lastMovementUpdate;
+
     public bool shallowDebug = false;
     public bool deepDebug = false;
 
+    private void Awake()
+    {
+        if(instance == null)
+        {
+            instance = this;
+        }
+        else if(instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+
     private void Start()
     {
+        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(GameObject.Find("Canvas"));
+
         StartCoroutine(GetExternalIp());
     }
 
@@ -137,15 +156,17 @@ public class Server : MonoBehaviour
                         OnNameIs(connectionId, splitData[1]);
                         break;
 
-                    case "DC":
-                        break;
-
                     case "ECHO":
                         OnEcho(connectionId, DateTime.Parse(splitData[1]), DateTime.Now);
                         break;
 
+                    case "MOVEMENTINPUT":
+                        OnMovementInput(connectionId, splitData);
+                        break;
+
                     default:
                         ServerLog("Invalid Message : " + msg);
+                        Send("INVALIDMESSAGE", reliableChannel, connectionId);
                         break;
                 }
                 break;
@@ -159,6 +180,14 @@ public class Server : MonoBehaviour
         {
             Send("PING|" + DateTime.Now.ToString(), reliableChannel, clients);
             pingTimer = pingFrequency;
+        }
+
+        //  Ask for player positions
+        if(Time.time - lastMovementUpdate > movementUpdateRate)
+        {
+            lastMovementUpdate = Time.time;
+
+            Send("ASKINPUT|", unreliableChannel, clients);
         }
     }
 
@@ -188,30 +217,11 @@ public class Server : MonoBehaviour
         Send("DC|" + conId, reliableChannel, clients);
     }
 
-    private void Send(string message, int channelId, int conId)
+     private void ServerLog(string input)
     {
-        List<ServerClient> c = new List<ServerClient>();
-        c.Add(clients.Find(x => x.connectionId == conId));
-        Send(message, channelId, c);
-    }
-    private void Send(string message, int channelId, List<ServerClient> c)
-    {
-        if (shallowDebug)
+        if(input.Split('|')[0].Contains("PING") || input.Split('|')[0].Contains("ECHO") || input.Split('|')[0].Contains("ASKPOSITION") || input.Split('|')[0].Contains("MYPOSITION"))
         {
-            ServerLog("Sending : " + message);
-        }
-        byte[] msg = Encoding.Unicode.GetBytes(message);
-        foreach (ServerClient client in c)
-        {
-            NetworkTransport.Send(hostId, client.connectionId, channelId, msg, message.Length * sizeof(char), out error);
-        }
-    }
-
-    private void ServerLog(string input)
-    {
-        if(input.Split('|')[0].Contains("PING") || input.Split('|')[0].Contains("ECHO"))
-        {
-            if(deepDebug == false)
+            if (deepDebug == false)
             {
                 return;
             }
@@ -235,5 +245,40 @@ public class Server : MonoBehaviour
         clients.Find(x => x.connectionId == conId).playerPing = avTripTime;
 
         Send("PINGRESULT|" + avTripTime.ToString(), reliableChannel, conId);
+    }
+
+    private void OnMovementInput(int conId, string[] data)
+    {
+        List<ServerClient> sendToClients = new List<ServerClient>();
+
+        foreach(ServerClient client in clients)
+        {
+            if(client.connectionId != conId)
+            {
+                sendToClients.Add(client);
+            }
+        }
+        string msg = "MOVEMENTOUTPUT|" + conId.ToString() + '|' + data[1] + '|' + data[2];
+
+        Send(msg, unreliableChannel, sendToClients);
+    }
+
+    private void Send(string message, int channelId, int conId)
+    {
+        List<ServerClient> c = new List<ServerClient>();
+        c.Add(clients.Find(x => x.connectionId == conId));
+        Send(message, channelId, c);
+    }
+    private void Send(string message, int channelId, List<ServerClient> c)
+    {
+        if (shallowDebug)
+        {
+            ServerLog("Sending : " + message);
+        }
+        byte[] msg = Encoding.Unicode.GetBytes(message);
+        foreach (ServerClient client in c)
+        {
+            NetworkTransport.Send(hostId, client.connectionId, channelId, msg, message.Length * sizeof(char), out error);
+        }
     }
 }
