@@ -42,7 +42,7 @@ public class VrUiButton : MonoBehaviour
             isPressed = true;
             GetComponent<Image>().color = pressedColour;
             OnTouch.Invoke();
-            StartCoroutine(toucher.transform.parent.gameObject.GetComponent<VrHandController>().VibrateController(.05f, .1f));
+            toucher.transform.parent.gameObject.GetComponent<VrHandController>().Vibrate(0.5f, 0.1f);
         }
     }
 
@@ -62,7 +62,7 @@ public class VrUiButton : MonoBehaviour
             isPressed = false;
             GetComponent<Image>().color = normalColour;
             OnRelease.Invoke();
-            StartCoroutine(toucher.transform.parent.gameObject.GetComponent<VrHandController>().VibrateController(.05f, .1f));
+            toucher.transform.parent.gameObject.GetComponent<VrHandController>().Vibrate(0.5f, 0.1f);
         }
     }
 }
