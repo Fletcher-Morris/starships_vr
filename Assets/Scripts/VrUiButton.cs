@@ -65,4 +65,17 @@ public class VrUiButton : MonoBehaviour
             toucher.transform.parent.gameObject.GetComponent<VrHandController>().Vibrate(0.5f, 0.1f);
         }
     }
+
+    private void Update()
+    {
+        if (isPressed)
+        {
+            GetComponent<Image>().color = pressedColour;
+        }
+        else
+        {
+            GetComponent<Image>().color = normalColour;
+        }
+
+    }
 }

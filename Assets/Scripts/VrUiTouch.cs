@@ -10,6 +10,7 @@ public class VrUiTouch : MonoBehaviour {
         if (other.GetComponent<VrUiButton>())
         {
             other.GetComponent<VrUiButton>().Touch(gameObject);
+            other.GetComponent<VrUiButton>().isPressed = true;
         }
     }
 
@@ -18,6 +19,7 @@ public class VrUiTouch : MonoBehaviour {
         if (other.GetComponent<VrUiButton>())
         {
             other.GetComponent<VrUiButton>().Release(gameObject);
+            other.GetComponent<VrUiButton>().isPressed = false;
         }
     }
 }

@@ -13,6 +13,7 @@ public class NetVrManager : MonoBehaviour {
     public GameObject myRightHand;
     public GameObject myLeftHand;
 
+
     private void Update()
     {
         if (!myVrRig)

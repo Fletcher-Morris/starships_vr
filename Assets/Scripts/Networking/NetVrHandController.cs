@@ -1,11 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
-public class VrHandController : MonoBehaviour {
-
-    public bool isRightHand;
-    public bool isLeftHand;
+public class NetVrHandController : NetworkBehaviour {
 
     public GameObject normalHand;
     public GameObject pointingHand;
@@ -13,15 +11,13 @@ public class VrHandController : MonoBehaviour {
     public GameObject thumbsHand;
     public GameObject okHand;
 
-    public GameObject myToucher;
-
-    private SteamVR_TrackedObject trackedObject;
-    private SteamVR_Controller.Device device;
-
+    [SyncVar]
     public float triggerAxis;
-
+    [SyncVar]
     public bool gripDown;
+    [SyncVar]
     public bool thumbDown;
+    [SyncVar]
     public bool fingerDown;
 
     private GameObject joint1;
@@ -36,28 +32,14 @@ public class VrHandController : MonoBehaviour {
     private Quaternion joint2Max;
     private Quaternion joint3Max;
 
-    private NetVrManager myNetVrManager;
-    NetVrHandController myNetEquivelent;
-
     private void Start()
     {
-        trackedObject = GetComponent<SteamVR_TrackedObject>();
-        myNetVrManager = GameObject.Find("NM").GetComponent<NetVrManager>();
-
-        if (gameObject.transform.name == "Controller (right)")
-            isRightHand = true;
-
-        if (gameObject.transform.name == "Controller (left)")
-            isLeftHand = true;
-
 
         normalHand = transform.Find("Normal Hand").gameObject;
         pointingHand = transform.Find("Pointing Hand").gameObject;
         fistHand = transform.Find("Fist Hand").gameObject;
         thumbsHand = transform.Find("Thumbs Hand").gameObject;
         okHand = transform.Find("OK Hand").gameObject;
-        myToucher = transform.Find("UiToucher").gameObject;
-
 
         joint1 = pointingHand.transform.GetChild(0).GetChild(4).gameObject;
         joint2 = joint1.transform.GetChild(0).gameObject;
@@ -74,38 +56,21 @@ public class VrHandController : MonoBehaviour {
 
     private void Update()
     {
-        device = SteamVR_Controller.Input((int)trackedObject.index);
-
-        triggerAxis = device.GetAxis(Valve.VR.EVRButtonId.k_EButton_SteamVR_Trigger).x;
-
-        if (device.GetPressDown(SteamVR_Controller.ButtonMask.Trigger))
-        {
-            StartCoroutine(VibrateController(.1f, 10));
-        }
-
-        if(normalHand != null && myToucher != null)
+        if (normalHand != null)
         {
             HandSwapper();
         }
-
-        UpdateNetHand();
     }
 
     private void HandSwapper()
     {
-        fingerDown = device.GetPress(SteamVR_Controller.ButtonMask.Trigger);
-        thumbDown = device.GetTouch(SteamVR_Controller.ButtonMask.Touchpad);
-        gripDown = device.GetPress(SteamVR_Controller.ButtonMask.Grip);
-
-        if(fingerDown && thumbDown && gripDown)
+        if (fingerDown && thumbDown && gripDown)
         {
             normalHand.SetActive(false);
             thumbsHand.SetActive(false);
             pointingHand.SetActive(false);
             fistHand.SetActive(true);
             okHand.SetActive(false);
-
-            myToucher.SetActive(false);
         }
         else if (thumbDown && fingerDown)
         {
@@ -114,8 +79,6 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(true);
-
-            myToucher.SetActive(false);
         }
         else if (fingerDown && gripDown)
         {
@@ -124,8 +87,6 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(false);
-
-            myToucher.SetActive(false);
         }
         else if (thumbDown && gripDown)
         {
@@ -134,9 +95,6 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(true);
             fistHand.SetActive(false);
             okHand.SetActive(false);
-
-            myToucher.SetActive(true);
-            myToucher.transform.position = pointingHand.transform.GetChild(0).GetChild(4).GetChild(0).GetChild(0).GetChild(0).gameObject.transform.position;
 
             FingerPose(triggerAxis);
         }
@@ -147,9 +105,6 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(false);
-
-            myToucher.SetActive(true);
-            myToucher.transform.position = normalHand.transform.GetChild(0).GetChild(4).GetChild(0).GetChild(0).GetChild(0).gameObject.transform.position;
         }
     }
 
@@ -158,39 +113,5 @@ public class VrHandController : MonoBehaviour {
         joint1.transform.localRotation = Quaternion.Lerp(joint1Max, joint1Min, pose);
         joint2.transform.localRotation = Quaternion.Lerp(joint2Max, joint2Min, pose);
         joint3.transform.localRotation = Quaternion.Lerp(joint3Max, joint3Min, pose);
-    }
-
-    public void Vibrate(float length, float strength)
-    {
-        StartCoroutine(VibrateController(length, strength));
-    }
-
-    private IEnumerator VibrateController(float length, float strength)
-    {
-        for (float i = 0; i < length; i += Time.deltaTime)
-        {
-            device.TriggerHapticPulse((ushort)Mathf.Lerp(0, 3999, strength));
-            yield return null;
-        }
-    }
-
-    private void UpdateNetHand()
-    {
-        if (isRightHand && myNetVrManager.myNetRig != null)
-        {
-            myNetEquivelent = myNetVrManager.myNetRig.GetComponent<NetVrRig>().rightHandObj.GetComponent<NetVrHandController>();
-        }
-        else if (isLeftHand && myNetVrManager.myNetRig != null)
-        {
-            myNetEquivelent = myNetVrManager.myNetRig.GetComponent<NetVrRig>().leftHandObj.GetComponent<NetVrHandController>();
-        }
-
-        if (myNetEquivelent != null)
-        {
-            myNetEquivelent.fingerDown = fingerDown;
-            myNetEquivelent.thumbDown = thumbDown;
-            myNetEquivelent.gripDown = gripDown;
-            myNetEquivelent.triggerAxis = triggerAxis;
-        }
     }
 }

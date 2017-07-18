@@ -10,7 +10,7 @@ public class NetVrRig : NetworkBehaviour {
     public GameObject leftHandObj;
 
     public NetVrManager myMan;
-
+    
     public bool showHands = false;
 
     private void Start()
@@ -29,9 +29,9 @@ public class NetVrRig : NetworkBehaviour {
 
         if (myMan)
         {
-            headObj.transform.position = myMan.myHead.transform.position * 2;
-            rightHandObj.transform.position = myMan.myRightHand.transform.position * 2;
-            leftHandObj.transform.position = myMan.myLeftHand.transform.position * 2;
+            headObj.transform.position = myMan.myHead.transform.position;
+            rightHandObj.transform.position = myMan.myRightHand.transform.position;
+            leftHandObj.transform.position = myMan.myLeftHand.transform.position;
 
             headObj.transform.rotation = myMan.myHead.transform.rotation;
             rightHandObj.transform.rotation = myMan.myRightHand.transform.rotation;
@@ -44,15 +44,15 @@ public class NetVrRig : NetworkBehaviour {
 
         if (!showHands)
         {
-            headObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = false;
-            rightHandObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = false;
-            leftHandObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = false;
+            headObj.layer = LayerMask.NameToLayer("Invisible");
+            rightHandObj.layer = LayerMask.NameToLayer("Invisible");
+            leftHandObj.layer = LayerMask.NameToLayer("Invisible");
         }
         else
         {
-            headObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = true;
-            rightHandObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = true;
-            leftHandObj.transform.GetChild(0).gameObject.GetComponent<MeshRenderer>().enabled = true;
+            headObj.layer = LayerMask.NameToLayer("Default");
+            rightHandObj.layer = LayerMask.NameToLayer("Default");
+            leftHandObj.layer = LayerMask.NameToLayer("Default");
         }
     }
 }
