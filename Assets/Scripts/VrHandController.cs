@@ -10,6 +10,8 @@ public class VrHandController : MonoBehaviour {
     public GameObject thumbsHand;
     public GameObject okHand;
 
+    public GameObject myToucher;
+
     private SteamVR_TrackedObject trackedObject;
     private SteamVR_Controller.Device device;
 
@@ -26,6 +28,7 @@ public class VrHandController : MonoBehaviour {
         fistHand = transform.Find("Fist Hand").gameObject;
         thumbsHand = transform.Find("Thumbs Hand").gameObject;
         okHand = transform.Find("OK Hand").gameObject;
+        myToucher = transform.Find("UiToucher").gameObject;
     }
 
     private void Update()
@@ -37,7 +40,7 @@ public class VrHandController : MonoBehaviour {
             StartCoroutine(VibrateController(.1f, 10));
         }
 
-        if(normalHand != null)
+        if(normalHand != null && myToucher != null)
         {
             HandSwapper();
         }
@@ -56,6 +59,8 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(true);
             okHand.SetActive(false);
+
+            myToucher.SetActive(false);
         }
         else if (thumbDown && fingerDown)
         {
@@ -64,6 +69,8 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(true);
+
+            myToucher.SetActive(false);
         }
         else if (fingerDown && gripDown)
         {
@@ -72,6 +79,8 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(false);
+
+            myToucher.SetActive(false);
         }
         else if (thumbDown && gripDown)
         {
@@ -80,6 +89,9 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(true);
             fistHand.SetActive(false);
             okHand.SetActive(false);
+
+            myToucher.SetActive(true);
+            myToucher.transform.localPosition = new Vector3(0.027f, -0.055f, -0.012f);
         }
         else
         {
@@ -88,6 +100,9 @@ public class VrHandController : MonoBehaviour {
             pointingHand.SetActive(false);
             fistHand.SetActive(false);
             okHand.SetActive(false);
+
+            myToucher.SetActive(true);
+            myToucher.transform.localPosition = new Vector3(-0.023f, -0.03f, -0.042f);
         }
     }
 
