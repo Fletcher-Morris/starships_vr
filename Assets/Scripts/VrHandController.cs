@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class VrHandController : MonoBehaviour {
 
+    public GameObject menuCanvas;
+    public bool showingMenuCanvas;
+
     public bool isRightHand;
     public bool isLeftHand;
 
@@ -43,6 +46,7 @@ public class VrHandController : MonoBehaviour {
     {
         trackedObject = GetComponent<SteamVR_TrackedObject>();
         myNetVrManager = GameObject.Find("NM").GetComponent<NetVrManager>();
+        menuCanvas = GameObject.Find("MainMenuCanvas");
 
         if (gameObject.transform.name == "Controller (right)")
             isRightHand = true;
@@ -89,6 +93,12 @@ public class VrHandController : MonoBehaviour {
         }
 
         UpdateNetHand();
+
+        if (device.GetPressDown(SteamVR_Controller.ButtonMask.ApplicationMenu) && menuCanvas != null)
+        {
+            ShowMenuCanvas();
+        }
+        showingMenuCanvas = menuCanvas.activeInHierarchy;
     }
 
     private void HandSwapper()
@@ -191,6 +201,23 @@ public class VrHandController : MonoBehaviour {
             myNetEquivelent.thumbDown = thumbDown;
             myNetEquivelent.gripDown = gripDown;
             myNetEquivelent.triggerAxis = triggerAxis;
+        }
+    }
+
+    public void ShowMenuCanvas()
+    {
+        if (!showingMenuCanvas)
+        {
+            menuCanvas.transform.parent = transform;
+            menuCanvas.transform.localPosition = new Vector3(0, .1f, .1f);
+            menuCanvas.transform.localEulerAngles = new Vector3(45, 0, 0);
+            showingMenuCanvas = true;
+            menuCanvas.SetActive(true);
+        }
+        else
+        {
+            showingMenuCanvas = false;
+            menuCanvas.SetActive(false);
         }
     }
 }
