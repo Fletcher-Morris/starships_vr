@@ -12,6 +12,11 @@ public class VrUiTouch : MonoBehaviour {
             other.GetComponent<VrUiButton>().Touch(gameObject);
             other.GetComponent<VrUiButton>().isPressed = true;
         }
+
+        if (other.GetComponent<VrUiToggle>())
+        {
+            other.GetComponent<VrUiToggle>().Touch(gameObject);
+        }
     }
 
     private void OnTriggerExit(Collider other)

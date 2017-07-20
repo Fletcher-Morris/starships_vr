@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class NetVrManager : MonoBehaviour {
 
@@ -13,9 +14,18 @@ public class NetVrManager : MonoBehaviour {
     public GameObject myRightHand;
     public GameObject myLeftHand;
 
+    public Toggle myStandingToggle;
+    public bool isStanding;
+
+    private void Start()
+    {
+        
+    }
 
     private void Update()
     {
+        isStanding = myStandingToggle.isOn;
+
         if (!myVrRig)
             myVrRig = GameObject.Find("[CameraRig]").gameObject;
 
@@ -27,5 +37,10 @@ public class NetVrManager : MonoBehaviour {
 
         if (!myLeftHand)
             myLeftHand = myVrRig.transform.Find("Controller (left)").gameObject;
+
+        if (myNetRig)
+        {
+            myNetRig.GetComponent<NetVrRig>().isStanding = isStanding;
+        }
     }
 }

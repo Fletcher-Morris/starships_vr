@@ -13,6 +13,9 @@ public class NetVrRig : NetworkBehaviour {
     
     public bool showHands = false;
 
+    [SyncVar]
+    public bool isStanding;
+
     private void Start()
     {
         if (!isLocalPlayer)

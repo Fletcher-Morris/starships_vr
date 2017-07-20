@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class VrHandController : MonoBehaviour {
 
@@ -208,7 +209,7 @@ public class VrHandController : MonoBehaviour {
     {
         if (!showingMenuCanvas)
         {
-            menuCanvas.transform.parent = transform;
+            menuCanvas.transform.SetParent(transform);
             menuCanvas.transform.localPosition = new Vector3(0, .1f, .1f);
             menuCanvas.transform.localEulerAngles = new Vector3(45, 0, 0);
             showingMenuCanvas = true;
