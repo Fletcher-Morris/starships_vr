@@ -30,4 +30,20 @@ public static class RosmarusExtensions
 
         return output;
     }
+
+    public static List<GameObject> GetAllChildren(GameObject parent)
+    {
+        List<GameObject> output = new List<GameObject>();
+
+        foreach (Transform child in parent.GetComponentInChildren<Transform>())
+        {
+            output.Add(child.gameObject);
+            foreach(GameObject grandChild in GetAllChildren(child.gameObject))
+            {
+                output.Add(grandChild);
+            }
+        }
+
+        return output;
+    }
 }

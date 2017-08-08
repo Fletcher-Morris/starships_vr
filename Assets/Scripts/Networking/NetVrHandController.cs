@@ -5,6 +5,7 @@ using UnityEngine.Networking;
 
 public class NetVrHandController : NetworkBehaviour {
 
+    public GameObject myHandGroup;
     public GameObject normalHand;
     public GameObject pointingHand;
     public GameObject fistHand;
@@ -35,11 +36,11 @@ public class NetVrHandController : NetworkBehaviour {
     private void Start()
     {
 
-        normalHand = transform.Find("Normal Hand").gameObject;
-        pointingHand = transform.Find("Pointing Hand").gameObject;
-        fistHand = transform.Find("Fist Hand").gameObject;
-        thumbsHand = transform.Find("Thumbs Hand").gameObject;
-        okHand = transform.Find("OK Hand").gameObject;
+        normalHand = myHandGroup.transform.Find("Normal Hand").gameObject;
+        pointingHand = myHandGroup.transform.Find("Pointing Hand").gameObject;
+        fistHand = myHandGroup.transform.Find("Fist Hand").gameObject;
+        thumbsHand = myHandGroup.transform.Find("Thumbs Hand").gameObject;
+        okHand = myHandGroup.transform.Find("OK Hand").gameObject;
 
         joint1 = pointingHand.transform.GetChild(0).GetChild(4).gameObject;
         joint2 = joint1.transform.GetChild(0).gameObject;

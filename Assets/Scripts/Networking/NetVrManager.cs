@@ -26,16 +26,16 @@ public class NetVrManager : MonoBehaviour {
     {
         isStanding = myStandingToggle.isOn;
 
-        if (!myVrRig)
+        if (!myVrRig && GameObject.Find("[CameraRig]"))
             myVrRig = GameObject.Find("[CameraRig]").gameObject;
 
-        if (!myHead)
+        if (!myHead && GameObject.Find("Camera (eye)"))
             myHead = myVrRig.transform.Find("Camera (eye)").gameObject;
 
-        if (!myRightHand)
+        if (!myRightHand && GameObject.Find("Controller (right)"))
             myRightHand = myVrRig.transform.Find("Controller (right)").gameObject;
 
-        if (!myLeftHand)
+        if (!myLeftHand && GameObject.Find("Controller (left)"))
             myLeftHand = myVrRig.transform.Find("Controller (left)").gameObject;
 
         if (myNetRig)
