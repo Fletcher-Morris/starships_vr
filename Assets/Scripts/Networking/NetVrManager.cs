@@ -14,9 +14,6 @@ public class NetVrManager : MonoBehaviour {
     public GameObject myRightHand;
     public GameObject myLeftHand;
 
-    public Toggle myStandingToggle;
-    public bool isStanding;
-
     private void Start()
     {
         
@@ -24,8 +21,6 @@ public class NetVrManager : MonoBehaviour {
 
     private void Update()
     {
-        isStanding = myStandingToggle.isOn;
-
         if (!myVrRig && GameObject.Find("[CameraRig]"))
             myVrRig = GameObject.Find("[CameraRig]").gameObject;
 
@@ -37,10 +32,5 @@ public class NetVrManager : MonoBehaviour {
 
         if (!myLeftHand && GameObject.Find("Controller (left)"))
             myLeftHand = myVrRig.transform.Find("Controller (left)").gameObject;
-
-        if (myNetRig)
-        {
-            myNetRig.GetComponent<NetVrRig>().isStanding = isStanding;
-        }
     }
 }

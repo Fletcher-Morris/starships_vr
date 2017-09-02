@@ -16,18 +16,23 @@ public class SwitchBridgePosition : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if(currentPosition + 1 <= positions.Count)
-            {
-                currentPosition++;
-                SwitchPosition(currentPosition);
-            }
-            else
-            {
-                currentPosition = 1;
-                SwitchPosition(currentPosition);
-            }
+			NextPosition ();
         }
     }
+
+	public void NextPosition()
+	{
+		if(currentPosition + 1 <= positions.Count)
+		{
+			currentPosition++;
+			SwitchPosition(currentPosition);
+		}
+		else
+		{
+			currentPosition = 1;
+			SwitchPosition(currentPosition);
+		}
+	}
 
     public void SwitchPosition(int posId)
     {
