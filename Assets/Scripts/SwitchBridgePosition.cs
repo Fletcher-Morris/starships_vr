@@ -6,6 +6,7 @@ public class SwitchBridgePosition : MonoBehaviour
 {
     public List<PositionRotation> positions;
     public int currentPosition = 1;
+	public GameObject myNetVrRig;
 
     private void Start()
     {
@@ -38,6 +39,11 @@ public class SwitchBridgePosition : MonoBehaviour
     {
         transform.position = positions[posId - 1].position;
         transform.eulerAngles = positions[posId - 1].rotation;
+
+		if (myNetVrRig != null) {
+			Vector3 oldPos = myNetVrRig.transform.position;
+			myNetVrRig.transform.position = new Vector3 (oldPos.x, positions[posId - 1].position.y + 1, oldPos.z);
+		}
     }
 }
 

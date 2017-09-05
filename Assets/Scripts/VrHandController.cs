@@ -98,7 +98,7 @@ public class VrHandController : MonoBehaviour {
 				ShowMenuCanvas ();
 			} else if (isRightHand && viewQuad != null) {
 				if (triggerAxis > 0.5f) {
-					ScreenCapture.CaptureScreenshot ("Screenshot_" + (Random.Range (1, 999).ToString ()) + ".png", 2);
+					ScreenCapture.CaptureScreenshot ("Screenshots/Screenshot_" + (Random.Range (1, 9999).ToString ()) + ".png", 2);
 					StartCoroutine(VibrateController(.1f, 10));
 				} else {
 					viewQuad.SetActive (!viewQuad.activeInHierarchy);

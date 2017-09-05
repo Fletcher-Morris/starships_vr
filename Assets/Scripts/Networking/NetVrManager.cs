@@ -14,11 +14,6 @@ public class NetVrManager : MonoBehaviour {
     public GameObject myRightHand;
     public GameObject myLeftHand;
 
-    private void Start()
-    {
-        
-    }
-
     private void Update()
     {
         if (!myVrRig && GameObject.Find("[CameraRig]"))
@@ -32,5 +27,10 @@ public class NetVrManager : MonoBehaviour {
 
         if (!myLeftHand && GameObject.Find("Controller (left)"))
             myLeftHand = myVrRig.transform.Find("Controller (left)").gameObject;
+
+		if (myNetRig != null)
+		{
+			myVrRig.GetComponent<SwitchBridgePosition> ().myNetVrRig = myNetRig;
+		}
     }
 }
